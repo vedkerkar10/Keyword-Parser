@@ -22,12 +22,13 @@ export default function Home() {
     }
   };
 
-  
+
   return (
     <>
-    <Navbar />
-    <TextInput onSubmit={handleTextSubmit} extractedText={extractedText} extractedKeywords={extractedKeywords} />
-
+      <div className="w-full h-screen bg-white">
+        <Navbar />
+        <TextInput onSubmit={handleTextSubmit} extractedText={extractedText} extractedKeywords={extractedKeywords} />
+      </div>
     </>
   );
 }
