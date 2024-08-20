@@ -3,6 +3,9 @@ import os
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
+import PyPDF2
+from PIL import Image
+import pytesseract as tess  # Add this import for OCR
 
 load_dotenv()
 client = Groq()
@@ -10,7 +13,43 @@ client = Groq()
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
+def extract_text_from_pdf(pdf_file: str) -> str:
+    with open(pdf_file, 'rb') as pdf:
+        reader = PyPDF2.PdfReader(pdf, strict=False)
+        pdf_text = []
 
+        for page in reader.pages:
+            text = page.extract_text()
+            pdf_text.append(text)
+        return "\n".join(pdf_text)
+
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    print("Received request:", request.data)  # Log the raw request data
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+
+    if file and (file.filename.endswith('.pdf') or file.filename.endswith(('.png', '.jpg', '.jpeg'))):
+        file_path = os.path.join('uploads', file.filename)
+        file.save(file_path)
+
+        # Perform OCR
+        if file_path.endswith('.pdf'):
+            extracted_text = extract_text_from_pdf(file_path)
+        else:
+            img = Image.open(file_path)
+            extracted_text = tess.image_to_string(img)
+
+        # Clean up the uploaded file
+        os.remove(file_path)
+
+        return jsonify({"extracted_text": extracted_text}), 200
+    else:
+        return jsonify({"error": "Invalid file type"}), 400
 
 @app.route('/extract', methods=['POST'])
 def extract():

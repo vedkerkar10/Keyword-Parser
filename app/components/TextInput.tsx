@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios"; // Add axios import
 
 interface TextInputProps {
     onSubmit: (text: string) => void;
@@ -8,6 +9,37 @@ interface TextInputProps {
 
 const TextInput: React.FC<TextInputProps> = ({ onSubmit, extractedText, extractedKeywords }) => {
     const [text, setText] = useState<string>("");
+    const [file, setFile] = useState<File | null>(null); // State for file
+    const [domain, setDomain] = useState("");
+
+  useEffect(() => {
+    if (process.env.NEXT_PUBLIC_DOMAIN) {
+      setDomain(process.env.NEXT_PUBLIC_DOMAIN);
+    }
+  },
+  []);
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            setFile(e.target.files[0]); // Set the selected file
+        }
+    };
+
+    const handleUpload = async () => {
+        if (file) {
+            const formData = new FormData();
+            formData.append("file", file);
+            try {
+                const response = await axios.post(`${domain}/upload`, formData, {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                });
+                setText(response.data.extracted_text); // Set extracted text from response
+            } catch (error) {
+                console.error("Error uploading file:", error);
+            }
+        }
+    };
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -49,6 +81,19 @@ const TextInput: React.FC<TextInputProps> = ({ onSubmit, extractedText, extracte
                     className="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-800 transition duration-200"
                 >
                     Extract
+                </button>
+                <input
+                    type="file"
+                    accept=".pdf, .png, .jpg, .jpeg"
+                    onChange={handleFileChange}
+                    className="mt-4"
+                />
+                <button
+                    type="button"
+                    onClick={handleUpload}
+                    className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-800 transition duration-200 mt-2"
+                >
+                    Upload
                 </button>
             </form>
             </div>
