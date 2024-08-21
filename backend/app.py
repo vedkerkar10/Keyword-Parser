@@ -13,6 +13,9 @@ client = Groq()
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
+tess.pytesseract.tesseract_cmd = r'C:/Program Files/Tesseract-OCR/tesseract.exe'
+
+
 def extract_text_from_pdf(pdf_file: str) -> str:
     with open(pdf_file, 'rb') as pdf:
         reader = PyPDF2.PdfReader(pdf, strict=False)
