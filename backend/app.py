@@ -13,8 +13,7 @@ client = Groq()
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# No need to specify the path if Tesseract is in PATH
-tess.pytesseract.tesseract_cmd = 'tesseract'
+tess.pytesseract.tesseract_cmd = r'C:/Program Files/Tesseract-OCR/tesseract.exe'
 
 
 def extract_text_from_pdf(pdf_file: str) -> str:
